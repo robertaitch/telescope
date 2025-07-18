@@ -2,9 +2,13 @@
 
 A simple Telegram OSINT tool that lets you search user profiles by phone number or username and view their details, privacy status, and profile photos.
 
-![TeleScope Interface](images/interface.png)
+p align="center">
+  <img src="images/interface.png" alt="TeleScope Interface" width="80%">
+</p>
 
-![Search Results](images/result.png)
+<p align="center">
+  <img src="images/result.png" alt="Search Results" width="80%">
+</p>
 
 ---
 
