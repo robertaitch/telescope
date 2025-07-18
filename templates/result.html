@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Search Result - TeleScope</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+<style>
+    body {
+      background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+      min-height: 100vh;
+    }
+    .main-card {
+      background: #374151;
+      border: 1px solid #4b5563;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+    .info-card {
+      background: #4b5563;
+      border: 1px solid #6b7280;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .profile-scroll {
+      scrollbar-width: thin;
+      scrollbar-color: #6b7280 #374151;
+    }
+    .profile-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .profile-scroll::-webkit-scrollbar-track {
+      background: #374151;
+      border-radius: 3px;
+    }
+    .profile-scroll::-webkit-scrollbar-thumb {
+      background: #6b7280;
+      border-radius: 3px;
+    }
+    .profile-scroll::-webkit-scrollbar-thumb:hover {
+      background: #9ca3af;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .status-online { background-color: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .status-offline { background-color: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .status-recently { background-color: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
+    .status-restricted { background-color: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      border: none;
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+      border: none;
+      transition: all 0.3s ease;
+    }
+    .btn-secondary:hover {
+      background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+      transform: translateY(-1px);
+    }
+    .success-gradient {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    }
+    .error-gradient {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+  </style>
+</head>
+<body class="text-white min-h-screen">
+<div class="text-center py-8">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="flex items-center justify-center gap-4">
+      <div class="text-5xl">🔭</div>
+      <div>
+        <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">TeleScope</h1>
+        <p class="text-blue-200">Telegram User Intelligence</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-6 pb-12">
+    {% if result %}
+<div class="success-gradient text-white p-6 rounded-xl shadow-lg mb-6">
+<div class="flex items-center gap-3">
+<div class="text-2xl">✓</div>
+<div>
+<h2 class="text-2xl font-bold">User Found</h2>
+<p class="text-green-100">Successfully located Telegram user profile</p>
+</div>
+</div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="lg:col-span-1">
+<div class="info-card rounded-xl p-6">
+<h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              📸 Profile Pictures
+              {% if result.profile_photos %}
+                <span class="text-sm bg-blue-600 text-blue-100 px-2 py-1 rounded-full">{{ result.profile_photos|length }}</span>
+              {% endif %}
+            </h3>
+            
+            {% if result.profile_photos %}
+              <div class="profile-scroll max-h-96 overflow-y-auto space-y-3">
+                {% for photo_path in result.profile_photos %}
+                  <div class="relative group">
+<img alt="Profile photo" class="w-full h-32 object-cover rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer" onclick="openModal('{{ url_for('serve_photo', filename=photo_path.split('/')[-1]) }}')" src="{{ url_for('serve_photo', filename=photo_path.split('/')[-1]) }}"/>
+<div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all rounded-lg flex items-center justify-center" style="pointer-events: none;">
+<span class="text-white opacity-0 group-hover:opacity-100 transition-opacity">🔍 View Full</span>
+</div>
+</div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="text-center py-8 text-gray-400">
+<div class="text-4xl mb-2">📷</div>
+<p>No profile pictures available</p>
+</div>
+            {% endif %}
+          </div>
+</div>
+
+<div class="lg:col-span-2 space-y-6">
+<div class="info-card rounded-xl p-6">
+<h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              👤 Basic Information
+            </h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="space-y-3">
+<div class="flex items-center gap-2">
+<span class="text-gray-300 font-medium">🆔 ID:</span>
+<span class="font-mono text-sm bg-gray-600 text-gray-100 px-2 py-1 rounded">{{ result.id }}</span>
+</div>
+                
+                {% if result.username %}
+                <div class="flex items-center gap-2">
+<span class="text-gray-300 font-medium">📝 Username:</span>
+<span class="text-blue-400 font-medium">@{{ result.username }}</span>
+</div>
+                {% endif %}
+
+                <div class="flex items-center gap-2">
+<span class="text-gray-300 font-medium">👨‍💼 Name:</span>
+<span class="font-medium text-white">{{ result.first_name }} {{ result.last_name }}</span>
+</div>
+
+                {% if result.phone %}
+                <div class="flex items-center gap-2">
+<span class="text-gray-300 font-medium">📞 Phone:</span>
+<span class="font-mono text-sm text-gray-200">{{ result.phone }}</span>
+</div>
+                {% endif %}
+              </div>
+<div class="space-y-3">
+<div class="flex items-center gap-2">
+<span class="text-gray-300 font-medium">🤖 Bot:</span>
+<span class="status-badge {% if result.bot %}bg-yellow-900 text-yellow-300 border-yellow-600{% else %}bg-gray-600 text-gray-300 border-gray-500{% endif %}">
+                    {{ "Yes" if result.bot else "No" }}
+                  </span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-gray-300 font-medium">✅ Verified:</span>
+<span class="status-badge {% if result.verified %}status-online{% else %}bg-gray-600 text-gray-300 border-gray-500{% endif %}">
+                    {{ "Yes" if result.verified else "No" }}
+                  </span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-gray-300 font-medium">⭐ Premium:</span>
+<span class="status-badge {% if result.premium %}bg-purple-900 text-purple-300 border-purple-600{% else %}bg-gray-600 text-gray-300 border-gray-500{% endif %}">
+                    {{ "Yes" if result.premium else "No" }}
+                  </span>
+</div>
+
+                {% if result.fake %}
+                <div class="flex items-center gap-2">
+<span class="text-gray-300 font-medium">⚠️ Fake:</span>
+<span class="status-badge status-offline">Yes</span>
+</div>
+                {% endif %}
+              </div>
+</div>
+</div>
+
+<div class="info-card rounded-xl p-6">
+<h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              🛡️ Status &amp; Privacy
+            </h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="space-y-3">
+<div>
+<span class="text-gray-300 font-medium block mb-1">📅 Last Seen:</span>
+<div class="flex items-center gap-2">
+<span class="status-badge {% if result.status_type == 'online' %}status-online {% elif result.status_type == 'offline' %}status-offline {% elif result.status_type == 'recently' %}status-recently {% else %}status-restricted{% endif %}">
+                      {% if result.status_type == 'online' %}🟢
+                      {% elif result.status_type == 'offline' %}🔴
+                      {% elif result.status_type == 'recently' %}🟡
+                      {% else %}🔒{% endif %}
+                      {{ result.last_seen }}
+                    </span>
+</div>
+                  {% if result.last_seen_exact %}
+                    <p class="text-xs text-gray-400 mt-1">Exact: {{ result.last_seen_exact }}</p>
+                  {% endif %}
+                </div>
+<div class="flex items-center gap-2">
+<span class="text-gray-300 font-medium">🔒 Privacy Restricted:</span>
+<span class="status-badge {% if result.privacy_restricted %}status-recently{% else %}status-online{% endif %}">
+                    {{ "Yes" if result.privacy_restricted else "No" }}
+                  </span>
+</div>
+</div>
+<div class="space-y-3">
+                {% if result.blocked is not none %}
+                <div class="flex items-center gap-2">
+<span class="text-gray-300 font-medium">🚫 Blocked:</span>
+<span class="status-badge {% if result.blocked %}status-offline{% else %}status-online{% endif %}">
+                    {{ "Yes" if result.blocked else "No" }}
+                  </span>
+</div>
+                {% endif %}
+
+                {% if result.common_chats_count is not none %}
+                <div class="flex items-center gap-2">
+<span class="text-gray-300 font-medium">👥 Common Chats:</span>
+<span class="status-badge bg-blue-900 text-blue-300 border-blue-600">{{ result.common_chats_count }}</span>
+</div>
+                {% endif %}
+              </div>
+</div>
+</div>
+
+          {% if result.bio %}
+          <div class="info-card rounded-xl p-6">
+<h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              📝 Biography
+            </h3>
+<div class="bg-gray-600 p-4 rounded-lg border-l-4 border-blue-500">
+<p class="text-gray-200 leading-relaxed">{{ result.bio }}</p>
+</div>
+</div>
+          {% endif %}
+        </div>
+</div>
+
+    {% else %}
+<div class="error-gradient text-white p-6 rounded-xl shadow-lg mb-6">
+<div class="flex items-center gap-3">
+<div class="text-2xl">❌</div>
+<div>
+<h2 class="text-2xl font-bold">No User Found</h2>
+<p class="text-red-100">The search did not return any results</p>
+</div>
+</div>
+</div>
+<div class="main-card rounded-xl p-8 text-center">
+<div class="text-6xl mb-4">🔍</div>
+<h3 class="text-xl font-semibold text-white mb-2">Search Unsuccessful</h3>
+<p class="text-gray-300 mb-4">The phone number or username could not be found. This could mean:</p>
+<ul class="text-gray-300 text-sm space-y-1 mb-6 inline-block text-left">
+<li>• The number/username doesn't exist on Telegram</li>
+<li>• The user has strict privacy settings</li>
+<li>• The user has blocked your account</li>
+<li>• The format is incorrect</li>
+</ul>
+</div>
+    {% endif %}
+
+<div class="mt-8 flex flex-wrap gap-4 justify-center">
+<a class="btn-primary text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 shadow-lg" href="{{ url_for('search') }}">
+        🔍 New Search
+      </a>
+<a class="btn-secondary text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 shadow-lg" href="{{ url_for('reset') }}">
+        🔄 Change Account
+      </a>
+</div>
+</div>
+
+<div class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center p-4" id="imageModal" onclick="closeModal()">
+<div class="relative max-w-4xl max-h-full">
+<img alt="Full size profile picture" class="max-w-full max-h-full object-contain rounded-lg" id="modalImage" src=""/>
+<button class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-75 transition-all" onclick="closeModal()">
+        ✕
+      </button>
+</div>
+</div>
+
+<script>
+    function openModal(imageSrc) {
+      document.getElementById('modalImage').src = imageSrc;
+      document.getElementById('imageModal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      document.getElementById('imageModal').classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>

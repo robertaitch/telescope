@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Verification - TeleScope</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+      min-height: 100vh;
+    }
+    .main-card {
+      background: #374151;
+      border: 1px solid #4b5563;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+    .code-input {
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.5em;
+      text-align: center;
+      font-size: 1.5rem;
+      padding: 1rem;
+      background: #4b5563;
+      border: 2px solid #6b7280;
+      color: #f9fafb;
+    }
+    .code-input:focus {
+      border-color: #8b5cf6;
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+      background: #374151;
+    }
+    .code-input::placeholder {
+      color: #9ca3af;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      border: none;
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+      transform: translateY(-1px);
+    }
+    .pulse-animation {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .info-card {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    .troubleshoot-card {
+      background: rgba(107, 114, 128, 0.2);
+      border: 1px solid rgba(107, 114, 128, 0.3);
+    }
+    .security-card {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+  </style>
+</head>
+<body class="text-white min-h-screen">
+  <div class="text-center py-8">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="flex items-center justify-center gap-4 mb-4">
+        <div class="text-5xl">🔭</div>
+        <div>
+          <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">TeleScope</h1>
+          <p class="text-blue-200">Telegram User Intelligence</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-lg mx-auto px-6 pb-12">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-6 p-4 rounded-lg {% if category == 'success' %}bg-green-900 text-green-100 border border-green-600{% elif category == 'error' %}bg-red-900 text-red-100 border border-red-600{% else %}bg-blue-900 text-blue-100 border border-blue-600{% endif %}">
+            <div class="flex items-center gap-2">
+              {% if category == 'success' %}✅
+              {% elif category == 'error' %}❌
+              {% else %}ℹ️{% endif %}
+              {{ message }}
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="main-card rounded-xl p-8">
+      <div class="text-center mb-6">
+        <div class="text-6xl mb-4 pulse-animation">📱</div>
+        <h2 class="text-2xl font-bold text-white mb-2">
+          Enter Verification Code
+        </h2>
+        <p class="text-gray-300">
+          Check your Telegram app for a verification code
+        </p>
+      </div>
+
+      <div class="info-card rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-3">
+          <div class="text-blue-400 text-xl">📋</div>
+          <div class="text-blue-100">
+            <h4 class="font-medium mb-2">Verification Steps:</h4>
+            <ol class="text-sm space-y-1 list-decimal list-inside">
+              <li>Open your Telegram app</li>
+              <li>Look for a message from Telegram</li>
+              <li>Enter the 5-digit code below</li>
+              <li>Click Submit to continue</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <form method="post" id="verificationForm">
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-200 mb-3 text-center">
+            🔢 Verification Code
+          </label>
+          <input name="code" id="codeInput"
+                 class="w-full code-input rounded-lg transition-all" 
+                 placeholder="12345" 
+                 required 
+                 maxlength="5" 
+                 pattern="[0-9]{5}"
+                 autocomplete="off"
+                 inputmode="numeric">
+          <p class="text-xs text-gray-400 mt-2 text-center">
+            Enter the 5-digit code from your Telegram app
+          </p>
+        </div>
+
+        <button type="submit" id="submitButton" class="w-full btn-primary text-white px-6 py-4 rounded-lg font-medium text-lg flex items-center justify-center gap-2">
+          <span id="buttonText">🚀 Verify & Continue</span>
+          <div id="loadingSpinner" class="hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+        </button>
+      </form>
+
+      <div class="mt-6 p-4 troubleshoot-card rounded-lg">
+        <h4 class="font-medium text-white mb-2 flex items-center gap-2">
+          ❓ Troubleshooting
+        </h4>
+        <div class="text-sm text-gray-300 space-y-1">
+          <p>• Code not received? Check your Telegram messages</p>
+          <p>• Wrong code? Make sure you're entering the latest code</p>
+          <p>• Still having issues? Try restarting the process</p>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-center gap-6 text-sm">
+        <a href="{{ url_for('reset') }}" class="text-red-400 hover:text-red-300 underline flex items-center gap-1">
+          🔄 Start Over
+        </a>
+        <button onclick="resendCode()" class="text-blue-400 hover:text-blue-300 underline flex items-center gap-1">
+          📬 Resend Code
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-6 security-card rounded-lg p-4">
+      <h4 class="font-medium text-white mb-2 flex items-center gap-2">
+        🛡️ Security Notice
+      </h4>
+      <p class="text-xs text-gray-300">
+        Your verification code is processed securely and used only for authentication with Telegram's official API. 
+        Never share this code with anyone else.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const codeInput = document.getElementById('codeInput');
+      const form = document.getElementById('verificationForm');
+      const submitButton = document.getElementById('submitButton');
+      const buttonText = document.getElementById('buttonText');
+      const spinner = document.getElementById('loadingSpinner');
+
+      codeInput.focus();
+
+      codeInput.addEventListener('input', function(e) {
+        this.value = this.value.replace(/\D/g, '');
+        
+        if (this.value.length === 5) {
+          setTimeout(() => {
+            form.submit();
+          }, 500);
+        }
+      });
+
+      form.addEventListener('submit', function() {
+        submitButton.disabled = true;
+        buttonText.classList.add('hidden');
+        spinner.classList.remove('hidden');
+        
+        setTimeout(() => {
+          submitButton.disabled = false;
+          buttonText.classList.remove('hidden');
+          spinner.classList.add('hidden');
+        }, 15000);
+      });
+
+      form.addEventListener('submit', function(e) {
+        if (codeInput.value.length !== 5) {
+          e.preventDefault();
+          codeInput.focus();
+          
+          codeInput.style.borderColor = '#ef4444';
+          setTimeout(() => {
+            codeInput.style.borderColor = '#6b7280';
+          }, 2000);
+        }
+      });
+    });
+
+    function resendCode() {
+      alert('🔄 Please check your Telegram app for a new verification code, or restart the authentication process.');
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        if (confirm('Are you sure you want to start over?')) {
+          window.location.href = "{{ url_for('reset') }}";
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Search - TeleScope</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+      min-height: 100vh;
+    }
+    .main-card {
+      background: #374151;
+      border: 1px solid #4b5563;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+    .input-field {
+      background: #4b5563;
+      border: 1px solid #6b7280;
+      color: #f9fafb;
+    }
+    .input-field:focus {
+      border-color: #8b5cf6;
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+      background: #374151;
+    }
+    .input-field::placeholder {
+      color: #9ca3af;
+    }
+    .search-option {
+      background: #4b5563;
+      border: 2px solid #6b7280;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .search-option:hover {
+      background: #374151;
+      border-color: #8b5cf6;
+    }
+    .search-option.selected {
+      background: rgba(139, 92, 246, 0.2);
+      border-color: #8b5cf6;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      border: none;
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+      transform: translateY(-1px);
+    }
+    .tips-card {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    .options-card {
+      background: rgba(107, 114, 128, 0.2);
+      border: 1px solid rgba(107, 114, 128, 0.3);
+    }
+  </style>
+</head>
+<body class="text-white min-h-screen">
+  <div class="text-center py-8">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="flex items-center justify-center gap-4 mb-4">
+        <div class="text-5xl">🔭</div>
+        <div>
+          <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">TeleScope</h1>
+          <p class="text-blue-200">Telegram User Intelligence</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-lg mx-auto px-6 pb-12">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-6 p-4 rounded-lg {% if category == 'success' %}bg-green-900 text-green-100 border border-green-600{% elif category == 'error' %}bg-red-900 text-red-100 border border-red-600{% else %}bg-blue-900 text-blue-100 border border-blue-600{% endif %}">
+            <div class="flex items-center gap-2">
+              {% if category == 'success' %}✅
+              {% elif category == 'error' %}❌
+              {% else %}ℹ️{% endif %}
+              {{ message }}
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="main-card rounded-xl p-8">
+      <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+        🔍 Search Telegram User
+      </h2>
+      <p class="text-gray-300 mb-6">Find detailed information about any Telegram user</p>
+
+      <form method="post" id="searchForm">
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-200 mb-3">
+            📋 Search Type
+          </label>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="search-option rounded-lg p-4" onclick="selectSearchType('phone')">
+              <input type="radio" name="input_type" value="phone" id="phone_option" class="hidden" checked>
+              <div class="flex items-center gap-3">
+                <div class="text-2xl">📞</div>
+                <div>
+                  <h3 class="font-medium text-white">Phone Number</h3>
+                  <p class="text-sm text-gray-300">Search by phone number</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="search-option rounded-lg p-4" onclick="selectSearchType('username')">
+              <input type="radio" name="input_type" value="username" id="username_option" class="hidden">
+              <div class="flex items-center gap-3">
+                <div class="text-2xl">👤</div>
+                <div>
+                  <h3 class="font-medium text-white">Username</h3>
+                  <p class="text-sm text-gray-300">Search by @username</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-200 mb-2" id="input_label">
+            📱 Phone Number
+          </label>
+          <input name="value" id="search_input" 
+                 class="w-full p-4 rounded-lg input-field transition-all text-lg" 
+                 placeholder="Enter phone number (+1234567890)" 
+                 required>
+          <div id="input_help" class="mt-2 text-sm text-gray-400">
+            <p><strong>Format:</strong> Include country code (e.g., +1234567890)</p>
+          </div>
+        </div>
+
+        <div class="mb-6 p-4 options-card rounded-lg">
+          <h4 class="font-medium text-white mb-3 flex items-center gap-2">
+            ⚙️ Search Options
+          </h4>
+          <div class="space-y-2">
+            <label class="flex items-center gap-2">
+              <input type="checkbox" id="download_photos" checked class="rounded border-gray-500 text-purple-600 focus:ring-purple-500 bg-gray-600">
+              <span class="text-sm text-gray-300">📸 Download profile pictures</span>
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="checkbox" id="get_full_info" checked class="rounded border-gray-500 text-purple-600 focus:ring-purple-500 bg-gray-600">
+              <span class="text-sm text-gray-300">📋 Get detailed profile information</span>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" id="searchButton" class="w-full btn-primary text-white px-6 py-4 rounded-lg font-medium text-lg flex items-center justify-center gap-2">
+          <span id="buttonText">🔍 Search User</span>
+          <div id="loadingSpinner" class="hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+        </button>
+      </form>
+    </div>
+
+    <div class="mt-6 tips-card rounded-lg p-6">
+      <h4 class="font-medium text-white mb-3 flex items-center gap-2">
+        💡 Search Tips
+      </h4>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
+        <div>
+          <h5 class="font-medium text-blue-200 mb-2">📞 Phone Numbers:</h5>
+          <ul class="space-y-1">
+            <li>• Always include country code</li>
+            <li>• Use format: +1234567890</li>
+            <li>• No spaces or special characters</li>
+          </ul>
+        </div>
+        <div>
+          <h5 class="font-medium text-blue-200 mb-2">👤 Usernames:</h5>
+          <ul class="space-y-1">
+            <li>• Don't include @ symbol</li>
+            <li>• Case sensitive</li>
+            <li>• Must be exact match</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 flex justify-center gap-4">
+      <a href="{{ url_for('reset') }}" class="text-gray-400 hover:text-gray-300 text-sm underline flex items-center gap-1">
+        🔄 Change Account
+      </a>
+    </div>
+  </div>
+
+  <script>
+    function selectSearchType(type) {
+      document.querySelectorAll('.search-option').forEach(el => {
+        el.classList.remove('selected');
+      });
+      
+      const option = document.querySelector(`#${type}_option`);
+      option.checked = true;
+      option.closest('.search-option').classList.add('selected');
+      
+      updateInputUI(type);
+    }
+
+    function updateInputUI(type) {
+      const label = document.getElementById('input_label');
+      const input = document.getElementById('search_input');
+      const help = document.getElementById('input_help');
+      
+      if (type === 'phone') {
+        label.innerHTML = '📱 Phone Number';
+        input.placeholder = 'Enter phone number (+1234567890)';
+        input.type = 'tel';
+        help.innerHTML = '<p><strong>Format:</strong> Include country code (e.g., +1234567890)</p>';
+      } else {
+        label.innerHTML = '👤 Username';
+        input.placeholder = 'Enter username (without @)';
+        input.type = 'text';
+        help.innerHTML = '<p><strong>Format:</strong> Username without @ symbol (e.g., johndoe)</p>';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      selectSearchType('phone');
+      
+      document.getElementById('search_input').focus();
+      
+      document.getElementById('searchForm').addEventListener('submit', function() {
+        const button = document.getElementById('searchButton');
+        const buttonText = document.getElementById('buttonText');
+        const spinner = document.getElementById('loadingSpinner');
+        
+        button.disabled = true;
+        buttonText.classList.add('hidden');
+        spinner.classList.remove('hidden');
+        
+        setTimeout(() => {
+          button.disabled = false;
+          buttonText.classList.remove('hidden');
+          spinner.classList.add('hidden');
+        }, 30000);
+      });
+    });
+  </script>
+</body>
+</html>

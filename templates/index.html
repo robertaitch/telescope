@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TeleScope - Telegram User Intelligence</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+      min-height: 100vh;
+    }
+    .main-card {
+      background: #374151;
+      border: 1px solid #4b5563;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+    .input-field {
+      background: #4b5563;
+      border: 1px solid #6b7280;
+      color: #f9fafb;
+    }
+    .input-field:focus {
+      border-color: #8b5cf6;
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+      background: #374151;
+    }
+    .input-field::placeholder {
+      color: #9ca3af;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      border: none;
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      border: none;
+      transition: all 0.3s ease;
+    }
+    .btn-secondary:hover {
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      transform: translateY(-1px);
+    }
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      border: none;
+      transition: all 0.3s ease;
+    }
+    .btn-danger:hover {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      transform: translateY(-1px);
+    }
+    .warning-card {
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+    .saved-card {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    .security-card {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+  </style>
+</head>
+<body class="text-white min-h-screen">
+  <div class="text-center py-12">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="flex items-center justify-center gap-4 mb-6">
+        <div class="text-7xl">🔭</div>
+        <div>
+          <h1 class="text-6xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">TeleScope</h1>
+          <p class="text-2xl text-blue-200 mt-2">Telegram User Intelligence</p>
+        </div>
+      </div>
+      <p class="text-blue-200 text-lg">Discover comprehensive user profiles and insights from Telegram</p>
+    </div>
+  </div>
+
+  <div class="max-w-lg mx-auto px-6 pb-12">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-6 p-4 rounded-lg {% if category == 'success' %}bg-green-900 text-green-100 border border-green-600{% elif category == 'error' %}bg-red-900 text-red-100 border border-red-600{% else %}bg-blue-900 text-blue-100 border border-blue-600{% endif %}">
+            <div class="flex items-center gap-2">
+              {% if category == 'success' %}✅
+              {% elif category == 'error' %}❌
+              {% else %}ℹ️{% endif %}
+              {{ message }}
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% if saved_credentials %}
+    <div class="main-card rounded-xl p-6 mb-6">
+      <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+        💾 Saved Session Available
+      </h3>
+      <div class="saved-card rounded-lg p-4 mb-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-green-300 font-medium">📱 Phone:</span>
+          <span class="font-mono text-sm text-green-200">{{ saved_credentials.phone }}</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-green-300 font-medium">🆔 API ID:</span>
+          <span class="font-mono text-sm text-green-200">{{ saved_credentials.api_id }}</span>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <form method="post" action="{{ url_for('load_saved') }}" class="flex-1">
+          <button type="submit" class="w-full btn-secondary text-white px-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2">
+            🚀 Use Saved Session
+          </button>
+        </form>
+        <a href="{{ url_for('clear_saved') }}" class="btn-danger text-white px-4 py-3 rounded-lg font-medium flex items-center gap-2">
+          🗑️ Clear
+        </a>
+      </div>
+      
+      <div class="mt-4 text-center">
+        <button onclick="toggleNewForm()" class="text-blue-400 hover:text-blue-300 text-sm underline">
+          Or enter new credentials
+        </button>
+      </div>
+    </div>
+    {% endif %}
+
+    <div id="credentialsForm" class="main-card rounded-xl p-8 {% if saved_credentials %}hidden{% endif %}">
+      <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+        🔐 Telegram API Setup
+      </h2>
+      <p class="text-gray-300 mb-6">Connect your Telegram account to start analyzing user profiles</p>
+      
+      <div class="warning-card rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-2">
+          <span class="text-yellow-400 text-lg">⚠️</span>
+          <div>
+            <p class="text-yellow-200 font-medium">API Credentials Required</p>
+            <p class="text-yellow-300 text-sm mt-1">
+              Get your API credentials from 
+              <a href="https://my.telegram.org" target="_blank" class="text-blue-400 underline hover:text-blue-300">my.telegram.org</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <form method="post">
+        <div class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">
+              🆔 API ID
+            </label>
+            <input name="api_id" type="number" 
+                   class="w-full p-3 rounded-lg input-field transition-all" 
+                   placeholder="Your API ID (numbers only)" 
+                   required 
+                   {% if saved_credentials %}value="{{ saved_credentials.api_id }}"{% endif %}>
+            <p class="text-xs text-gray-400 mt-1">Numeric ID from Telegram API settings</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">
+              🔑 API Hash
+            </label>
+            <input name="api_hash" type="text" 
+                   class="w-full p-3 rounded-lg input-field transition-all" 
+                   placeholder="Your API Hash" 
+                   required
+                   {% if saved_credentials %}value="{{ saved_credentials.api_hash }}"{% endif %}>
+            <p class="text-xs text-gray-400 mt-1">Alphanumeric hash from Telegram API settings</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">
+              📱 Phone Number
+            </label>
+            <input name="phone" type="tel" 
+                   class="w-full p-3 rounded-lg input-field transition-all" 
+                   placeholder="+1234567890" 
+                   required 
+                   pattern="^\+[1-9]\d{1,14}$"
+                   {% if saved_credentials %}value="{{ saved_credentials.phone }}"{% endif %}>
+            <p class="text-xs text-gray-400 mt-1">Include country code (e.g., +1 for US, +44 for UK)</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="save_session" name="save_session" class="rounded border-gray-500 text-purple-600 focus:ring-purple-500 bg-gray-600">
+            <label for="save_session" class="text-sm text-gray-300">
+              💾 Remember these credentials for next time
+            </label>
+          </div>
+
+          <button type="submit" class="w-full btn-primary text-white px-4 py-4 rounded-lg font-medium text-lg flex items-center justify-center gap-2">
+            🚀 Connect to Telegram
+          </button>
+        </div>
+      </form>
+
+      {% if saved_credentials %}
+      <div class="mt-4 text-center">
+        <button onclick="toggleNewForm()" class="text-gray-400 hover:text-gray-300 text-sm underline">
+          Cancel and use saved session
+        </button>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="mt-6 security-card rounded-lg p-4">
+      <h4 class="font-medium text-white mb-2 flex items-center gap-2">
+        🛡️ Privacy & Security
+      </h4>
+      <ul class="text-xs text-gray-300 space-y-1">
+        <li>• Your credentials are used only to authenticate with Telegram's official API</li>
+        <li>• Saved credentials are stored locally on your device</li>
+        <li>• No data is transmitted to third-party servers</li>
+        <li>• All searches comply with Telegram's terms of service</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    function toggleNewForm() {
+      const form = document.getElementById('credentialsForm');
+      form.classList.toggle('hidden');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const inputs = document.querySelectorAll('input[required]');
+      for (let input of inputs) {
+        if (!input.value) {
+          input.focus();
+          break;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
